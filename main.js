@@ -13,7 +13,7 @@ document.body.appendChild( renderer.domElement );
 const scene = new THREE.Scene();
 
 // Setup star skybox
-const starsTexture = new THREE.TextureLoader().load('/stars.jpg');
+const starsTexture = new THREE.TextureLoader().load('./stars.jpg');
 starsTexture.colorSpace = THREE.SRGBColorSpace;
 scene.background = starsTexture;
 
