@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // Setup renderer
-const renderer = new THREE.WebGLRenderer({antialias: true});
+const canvas = document.querySelector('#c');
+const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
 renderer.setPixelRatio( window.devicePixelRatio );
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setAnimationLoop(animate);
-document.body.appendChild( renderer.domElement );
 
 // Setup scene
 const scene = new THREE.Scene();
@@ -19,8 +20,13 @@ scene.background = starsTexture;
 
 // Setup camera
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-camera.position.set(0, 0, 150);
+camera.position.set(0, 0, 200);
 camera.lookAt(new THREE.Vector3(0, -1, 0))
+
+const control = new OrbitControls(camera, renderer.domElement);
+control.enablePan = false;
+control.enableZoom = false;
+control.update();
 
 // Setup lights, code taken from https://github.com/janarosmonaliev/github-globe/blob/main/src/index.js
 scene.add(new THREE.AmbientLight(0xbbbbbb, 0.7));
@@ -45,107 +51,38 @@ scene.add(pivot2);
 const pivot3 = new THREE.Object3D();
 scene.add(pivot3);
 
-const sphereGeometry = new THREE.SphereGeometry( 8, 32, 16 );
-const blueMaterial = new THREE.MeshPhongMaterial( { color: 0x2a47b0, emissive: 0x220038, emissiveIntensity: 0.2, shininess: 0.7 } );
-const redMaterial = new THREE.MeshPhongMaterial( { color: 0xa13927, emissive: 0xa24816, emissiveIntensity: 0.2, shininess: 0.7 } );
-const purpleMaterial = new THREE.MeshPhongMaterial( { color: 0x521da1, emissive: 0x7c40d6, emissiveIntensity: 0.2, shininess: 0.7 } );
-const yellowMaterial = new THREE.MeshPhongMaterial( { color: 0xccc72b, emissive: 0xe0dc63, emissiveIntensity: 0.2, shininess: 0.7 } );
-const greenMaterial = new THREE.MeshPhongMaterial( { color: 0x3a9421, emissive: 0x7bd962, emissiveIntensity: 0.2, shininess: 0.7 } );
-const orangeMaterial = new THREE.MeshPhongMaterial( { color: 0xbd6a22, emissive: 0xe09a5c, emissiveIntensity: 0.2, shininess: 0.7 } );
-const blueSphere = new THREE.Mesh( sphereGeometry.clone(), blueMaterial );
-const redSphere = new THREE.Mesh( sphereGeometry.clone(), redMaterial );
-const purpleSphere = new THREE.Mesh( sphereGeometry.clone(), purpleMaterial );
-const yellowSphere = new THREE.Mesh( sphereGeometry.clone(), yellowMaterial );
-const greenSphere = new THREE.Mesh( sphereGeometry.clone(), greenMaterial );
-const orangeSphere = new THREE.Mesh( sphereGeometry.clone(), orangeMaterial );
-pivot.add( blueSphere );
-pivot.add( redSphere );
-pivot2.add(purpleSphere);
-pivot2.add(yellowSphere);
-pivot3.add(greenSphere);
-pivot3.add(orangeSphere);
-blueSphere.position.x = 80;
-redSphere.position.x = -80;
-purpleSphere.position.y = 80;
-yellowSphere.position.y = -80;
-greenSphere.position.z = -80;
-orangeSphere.position.z = 80;
+function makeSphere(geometry, color, emissive) {
+    const material = new THREE.MeshPhongMaterial({color: color, emissive: emissive, emissiveIntensity: 0.2, shininess: 0.7, wireframe: true});
+    const sphere = new THREE.Mesh(geometry, material);
+    return sphere;
+}
 
+const colors = [0x2a47b0, 0xa13927, 0x521da1, 0xccc72b, 0x3a9421, 0xbd6a22]
+const emissive = [0x220038, 0xa24816, 0x7c40d6, 0xe0dc63,  0x7bd962, 0xe09a5c]
 
-// Atmospheric glow effect
-// Code from https://discourse.threejs.org/t/how-to-create-an-atmospheric-glow-effect-on-surface-of-globe-sphere/32852/4
-var vertexShader = [
-      'varying float intensity ;',
-      'uniform vec3 lightSourcePos;',
-      'uniform vec3 camPos;',
-      'void main() {',
-        'vec3 vNormal = normalize( normalMatrix * normal );',
-        'vec4 viewLightPos   =  modelViewMatrix * vec4(lightSourcePos, 1.0);', // pos of light source
-        'vec4 viewCamPos  = viewMatrix * vec4(camPos, 1.0);',
-        'vec4 vViewPosition4   =  modelViewMatrix * vec4(position, 1.0);',
-        'vec3 camPosToVertexDir =  normalize(viewCamPos.xyz - vViewPosition4.xyz);',
-        'vec3 lightDir = normalize(viewLightPos.xyz - vViewPosition4.xyz) ;',
-        'float lightsourceIntensity = clamp(dot(lightDir, vNormal) + 1.0, 0.0, 1.0);', //lightsource facing surface has higher intensity
-        'intensity = pow( 0.7 - dot(vNormal, camPosToVertexDir), 12.0 ) * lightsourceIntensity;',//intensity is highest at faces orthogonal to cam pos-vertex direction
-        'gl_Position = projectionMatrix * vViewPosition4;',
-        'vec3 vPosition = gl_Position.xyz;',
-      '}'
-    ].join('\n')
-	
-var fragmentShader = [
-      'uniform vec3 glowColor;',
-      'varying float intensity ;',
-      'void main() {',
-        'vec3 glow = glowColor * intensity*0.3;',
-        'gl_FragColor = vec4( glow, 1.0 ) ;',
-      '}'
-    ].join('\n')
-
-const customBlueMaterial = new THREE.ShaderMaterial(
-    {
-        uniforms:
-            {
-                "lightSourcePos": {type: "v3", value: dLight1.position},
-                "camPos": {type: "v3", value: camera.position},
-                "glowColor": {type: "v3", value: new THREE.Color(0x7993db)}
-            },
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        transparent: true
+const sphereGeometry = new THREE.SphereGeometry( 7, 32, 16 );
+for (let i = 0; i < colors.length; i++) {
+    const sphere = makeSphere(sphereGeometry, colors[i], emissive[i]);
+    const pos = (i % 2 == 0) ? 100 : -100;
+    if (i < 2) {
+        pivot.add(sphere);
+        sphere.position.x = pos;
+    } else if (i < 4) {
+        pivot2.add(sphere);
+        sphere.position.y = pos;
+    } else {
+        pivot3.add(sphere);
+        sphere.position.z = pos;
     }
-);
-
-const customRedMaterial = customBlueMaterial.clone();
-customRedMaterial.uniforms.glowColor.value = new THREE.Color(0xd68b74);
-const customPurpleMaterial = customBlueMaterial.clone();
-// customRedMaterial.uniforms.glowColor.value = new THREE.Color(0xd68b74);
-// const customRedMaterial = customBlueMaterial.clone();
-// customRedMaterial.uniforms.glowColor.value = new THREE.Color(0xd68b74);
-// const customRedMaterial = customBlueMaterial.clone();
-// customRedMaterial.uniforms.glowColor.value = new THREE.Color(0xd68b74);
-// const customRedMaterial = customBlueMaterial.clone();
-// customRedMaterial.uniforms.glowColor.value = new THREE.Color(0xd68b74);
-
-
-const blueGlow = new THREE.Mesh(sphereGeometry.clone(), customBlueMaterial);
-pivot.add(blueGlow);
-blueGlow.position.x = blueSphere.position.x;
-blueGlow.scale.setScalar(1.15);
-
-const redGlow = new THREE.Mesh(sphereGeometry.clone(), customRedMaterial);
-pivot.add(redGlow);
-redGlow.position.x = redSphere.position.x;
-redGlow.scale.setScalar(1.15);
+}
 
 // Title text
 const loader = new FontLoader();
 loader.load( './fonts/helvetiker_bold.typeface.json', function ( font ) {
 	const textGeometry = new TextGeometry( 'Tetsuo', {
 		font: font,
-		size: 25,
-		depth: 5,
+		size: 30,
+		depth: 6,
 		curveSegments: 12,
 	} );
     textGeometry.computeBoundingBox();
@@ -156,13 +93,14 @@ loader.load( './fonts/helvetiker_bold.typeface.json', function ( font ) {
     scene.add(title);
 } );
 
-
-window.addEventListener( 'resize', onWindowResize );
+window.addEventListener('resize', onWindowResize);
+document.addEventListener('mousemove', onPointerMove);
 
 function animate() {
     pivot.rotateZ(0.01);
     pivot2.rotateX(0.01);
     pivot3.rotateY(0.01);
+
     renderer.render(scene, camera);
 }
 

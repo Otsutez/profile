@@ -4,10 +4,66 @@
     <meta charset="utf-8">
     <title>My Profile</title>
     <style>
-      body { margin: 0; }
+      body { margin: 0; background-image: url("./stars.jpg");}
+      .content {
+        font-family: "Helvetiker", "Verdana", "Tahoma", "sans-serif";
+        color: gainsboro;
+        margin-top: 5%;
+        text-align: center
+      }
+      .center {
+        margin: auto;
+      }
+      .paragraph {
+        text-align: left;
+        margin-top: 30px;
+        width: 70ch;
+      }
+      .subheader {
+        text-align: left;
+        margin-top: 30px;
+        width: 42ch;
+      }
+      .image {
+        margin-top: 15px;
+        width: 750px
+      }
+      a {
+        color: lightseagreen;
+      }
+      ul {
+        text-align: left;
+        width: 70ch;
+
+      }
     </style>
   </head>
   <body>
+    <canvas id="c"></canvas>
+    <div class="content">
+      <h1 class="center">About Me</h1>
+      <p class="center paragraph">Hello! My name is Tetsuo and I'm a 2nd year Computer Science student at UNSW. My hobbies right now are programming (in Rust or Python, I kinda hate Javascript after making this website), running, reading fiction books and watching Netflix. I'm also learning how to play the guitar and how to do security research.</p>
+      <p class="center paragraph">This is my first time making a website with actual JavaScript. My HTML and CSS skills are super rusty so please forgive the messy look.</p>
+      <p class="center paragraph">Other things about me:</p>
+      <ul class="center">
+        <li>I have a twin.</li>
+        <li>I'm half Japanese, half Thai.</li>
+        <li>I want to switch to Linux but I'm too scared to do it.</li>
+      </ul> 
+    </div>
+    <div class="content">
+      <h1 class="center">Projects</h1>
+      <a href="https://github.com/Otsutez/" target="_blank">Github</a>
+      <h2 class="center subheader">kase64</h2>
+      <p class="center paragraph">An encryption algorithm which combines RC4's key scheduling algorithm with Base64 encoding. COMP3331 gave me the inspiration to write this algorithm.</p>
+      <img class="image" src="./kase64.png" alt="kase64 usage">
+      <h2 class="center subheader">shooter-rs</h2>
+      <p class="center paragraph">A 2-player FPS game written in Rust using Raylib library.</p>
+      <img class="image" src="./shooter-rs.png" alt="kase64 usage">
+    </div>
+    <div class="content">
+      <h1 class="center"></h1>
+    </div>
     <script type="module" src="/main.js"></script>
   </body>
 </html>
